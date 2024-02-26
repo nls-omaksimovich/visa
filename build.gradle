@@ -1,0 +1,103 @@
+buildscript {
+    ext {
+        // Dependency Versions
+        mapstructVersion = '1.4.2.Final'
+
+        // Test dependency versions
+        testcontainersPostgressVersion = '1.19.5'
+
+        // Plugin Versions
+        springBootPluginVersion = '3.2.2'
+        springdocPluginVersion = '1.8.0'
+        springDependencyManagementPluginVersion = '1.1.4'
+
+        // spotbugs version
+        spotbugsVersion = '6.0.7'
+        // check style version
+        checkStyleVersion = '10.13.0'
+        // API documentation Versions
+        springdocVersion = '2.3.0'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'checkstyle'
+    id 'com.github.spotbugs' version "${spotbugsVersion}"
+    id 'org.springframework.boot' version "${springBootPluginVersion}"
+    id 'org.springdoc.openapi-gradle-plugin' version "${springdocPluginVersion}"
+    id 'io.spring.dependency-management' version "${springDependencyManagementPluginVersion}"
+}
+
+java {
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // annotation processors
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+
+    // dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // annotation processors for tests
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation "org.testcontainers:postgresql:${testcontainersPostgressVersion}"
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'io.rest-assured:rest-assured'
+
+    // API documentation
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:${springdocVersion}"
+}
+
+openApi {
+    apiDocsUrl.set("http://localhost:8080/api-docs")
+}
+
+checkstyle {
+    description 'Checks if the code adheres to coding standards'
+    group 'verification'
+
+    toolVersion = "${checkStyleVersion}"
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+    configProperties = [
+            'configDir': rootProject.file('config/checkstyle'),
+            'baseDir'  : rootDir,
+    ]
+    ignoreFailures = false
+}
+
+test {
+    useJUnitPlatform()
+}

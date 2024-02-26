@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    driver-class-name: "org.testcontainers.jdbc.ContainerDatabaseDriver"
+    url: "jdbc:tc:postgresql:16-alpine:///db"
+  jpa:
+    show-sql: on
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+    hibernate:
+      ddl-auto: create
+
+#    hibernate:
+logging:
+  level:
+    org:
+      hibernate:
+        sql: DEBUG
+        type:
+          descriptor:
+            sql: TRACE
+

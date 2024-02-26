@@ -1,0 +1,1 @@
+drop table visa_application;
