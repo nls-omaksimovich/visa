@@ -11,7 +11,10 @@ import org.springframework.context.annotation.Import;
 import static io.restassured.RestAssured.given;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(classes = Application.class, webEnvironment = RANDOM_PORT)
+@SpringBootTest(
+        classes = Application.class,
+        webEnvironment = RANDOM_PORT
+)
 @Import(ContainersConfig.class)
 public abstract class AbstractIntegrationTest {
     @LocalServerPort
