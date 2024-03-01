@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: "jdbc:tc:postgresql:16-alpine:///db"
+    url: "jdbc:tc:postgresql:16-alpine:///db?TC_REUSABLE=true"
     driver-class-name: "org.testcontainers.jdbc.ContainerDatabaseDriver"
   jpa:
     show-sql: on

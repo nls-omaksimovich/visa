@@ -26,7 +26,7 @@ public class LoadVisaApplicationAdapter implements LoadVisaApplicationPort {
 
     @Override
     public List<VisaApplication> findAllApplications(ApplicationStatus applicationStatus) {
-        return visaApplicationRepository.findAllWhereApplicationStatusIs(applicationStatus)
+        return visaApplicationRepository.findByApplicationStatus(applicationStatus)
                 .stream()
                 .map(INSTANCE::visaApplicationEntityToVisaApplication)
                 .toList();

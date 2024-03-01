@@ -7,6 +7,6 @@ create table IF NOT EXISTS visa_application
     application_status  varchar(255)
         constraint visa_application_application_status_check
             check ((application_status)::text = ANY
-        ((ARRAY ['SELECTED'::character varying, 'PENDING'::character varying, 'NON_SELECTED'::character varying])::text[])),
+                   ((ARRAY ['SELECTED'::character varying, 'PENDING'::character varying, 'NON_SELECTED'::character varying])::text[])),
     timeslot            varchar(255)
 );

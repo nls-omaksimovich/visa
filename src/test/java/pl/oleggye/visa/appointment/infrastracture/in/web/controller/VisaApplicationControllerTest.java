@@ -2,6 +2,7 @@ package pl.oleggye.visa.appointment.infrastracture.in.web.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,6 +28,10 @@ import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -56,6 +61,11 @@ class VisaApplicationControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     }
 
+    @AfterEach
+    void tearDown() {
+        verifyNoMoreInteractions(applyForVisaUseCase, checkRegistrationUseCase);
+    }
+
     @Test
     void applyForVisa_WithMissingRequiredFields_ShouldReturnBadRequest() throws Exception {
         mockMvc.perform(post("/visa/apply")
@@ -82,10 +92,29 @@ class VisaApplicationControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print()) // This will print the request and response details
                 .andExpect(status().isBadRequest());
+
+        verify(applyForVisaUseCase, times(1)).applyForVisa(any(ApplyForVisaCommand.class));
+    }
+
+    @Test
+    void applyForVisa_WhenApplicationNameSizeExceeded_ShouldReturnBadRequest() throws Exception {
+        VisaApplicationRequest request = new VisaApplicationRequest(
+                new String(new char[41]).replace('\0', 'a'),// more than max length that is 40
+                LocalDateTime.now(),
+                "late night"
+        );
+
+        mockMvc.perform(post("/visa/apply")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print()) // This will print the request and response details
+                .andExpect(status().isBadRequest());
+
+        verify(applyForVisaUseCase, never()).applyForVisa(any(ApplyForVisaCommand.class));
     }
 
     @ParameterizedTest
-    @MethodSource("provideVisaApplications")
+    @MethodSource("provideVisaApplicationsAndResponseStatuses")
     @SneakyThrows
     void applyForVisaSuccessfully(VisaApplicationRequest request, ResultMatcher statusMatcher) {
         when(applyForVisaUseCase.applyForVisa(any(ApplyForVisaCommand.class))).thenReturn(visaApplication);
@@ -95,9 +124,11 @@ class VisaApplicationControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print()) // This will print the request and response details
                 .andExpect(statusMatcher);
+
+        verify(applyForVisaUseCase, times(1)).applyForVisa(any(ApplyForVisaCommand.class));
     }
 
-    static Stream<Arguments> provideVisaApplications() {
+    static Stream<Arguments> provideVisaApplicationsAndResponseStatuses() {
         return Stream.of(
                 Arguments.of(
                         new VisaApplicationRequest(
@@ -130,14 +161,6 @@ class VisaApplicationControllerTest {
                                 "night"
                         ),
                         status().isCreated()
-                ),
-                Arguments.of(
-                        new VisaApplicationRequest(
-                                new String(new char[41]).replace('\0', 'a'),// more than max length that is 40
-                                LocalDateTime.now(),
-                                "late night"
-                        ),
-                        status().isBadRequest()
                 )
         );
     }
